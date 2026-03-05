@@ -45,7 +45,9 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             leading: IconButton(
                 onPressed: () {
-                  Navigator.pop(context);
+                  if (Navigator.canPop(context)) {
+                    Navigator.pop(context);
+                  }
                 },
                 icon: Icon(Icons.arrow_back_ios_new)),
           ),
@@ -102,23 +104,6 @@ Future<void> sendmessage() {
 
 var firestor = FirebaseFirestore.instance;
 
-/*Future<void> getMessages() async {
-  var messages = await _firestor.collection('messages').get();
-  for (var message in messages.docs) {
-    print(message.data());
-  }
-}
-*/
-/*void messagesStreams() async {
-  await for (var snapshot
-      in firestor.collection('messages').orderBy('time').snapshots()) {
-    for (var message in snapshot.docs) {
-      messageslist.add(message.data()['user']);
-      print(message.data()['message']);
-    }
-  }
-}
-*/
 class MessageStreamBuilder extends StatelessWidget {
   const MessageStreamBuilder({super.key});
 
