@@ -1,8 +1,11 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables, avoid_print
 
+import 'package:chatapp/cubit/send_message_cubit.dart';
+import 'package:chatapp/screens/login_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 User? user;
 
@@ -20,20 +23,55 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     user = FirebaseAuth.instance.currentUser;
   }
 
   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
           backgroundColor: const Color.fromARGB(255, 216, 220, 240),
           appBar: AppBar(
             backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-            actions: [IconButton(onPressed: () {}, icon: Icon(Icons.settings))],
+            actions: [
+              IconButton(
+                  onPressed: () {
+                    showModalBottomSheet(
+                        context: context,
+                        builder: (context) {
+                          return Container(
+                            height: 100,
+                            child: Center(
+                              child: TextButton(
+                                  style: TextButton.styleFrom(
+                                      backgroundColor: const Color.fromARGB(
+                                          255, 205, 15, 15)),
+                                  onPressed: () {
+                                    FirebaseAuth.instance.signOut();
+                                    Navigator.popUntil(
+                                        context, ModalRoute.withName('/'));
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                LoginScreen()));
+                                  },
+                                  child: Text('logout',
+                                      style: TextStyle(color: Colors.black))),
+                            ),
+                          );
+                        });
+                  },
+                  icon: Icon(Icons.more_vert, color: Colors.black))
+            ],
             title: Row(
               children: [
                 Icon(Icons.groups),
@@ -51,55 +89,46 @@ class _ChatScreenState extends State<ChatScreen> {
                 },
                 icon: Icon(Icons.arrow_back_ios_new)),
           ),
-          body: SingleChildScrollView(
-            child: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: double.infinity,
-                      height: 650,
-                      child: MessageStreamBuilder(),
+          body: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: MessageStreamBuilder(),
+                  ),
+                  BlocProvider(
+                    create: (context) => SendMessageCubit(),
+                    child: BlocBuilder<SendMessageCubit, SendMessageState>(
+                      builder: (context, state) {
+                        return TextField(
+                          controller: _controller,
+                          decoration: InputDecoration(
+                              hintStyle: TextStyle(),
+                              suffixIcon: IconButton(
+                                icon: (state is SendMessageLoading)
+                                    ? CircularProgressIndicator()
+                                    : Icon(Icons.send_outlined),
+                                onPressed: () {
+                                  context.read<SendMessageCubit>().sendMessage(
+                                      message: _controller.text,
+                                      user: user!.email!);
+                                  _controller.clear();
+                                },
+                              ),
+                              hintText: 'Type your message',
+                              border: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      width: 3, style: BorderStyle.solid),
+                                  borderRadius: BorderRadius.circular(10))),
+                        );
+                      },
                     ),
-                    TextField(
-                      controller: _controller,
-                      decoration: InputDecoration(
-                          hintStyle: TextStyle(),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              Icons.send_outlined,
-                            ),
-                            onPressed: () {
-                              sendmessage();
-                              setState(() {
-                                _controller.clear();
-                              });
-                            },
-                          ),
-                          hintText: 'Type your message',
-                          border: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  width: 3, style: BorderStyle.solid),
-                              borderRadius: BorderRadius.circular(10))),
-                    )
-                  ],
-                )),
-          )),
-    );
+                  )
+                ],
+              )),
+        ));
   }
-}
-
-Future<void> sendmessage() {
-  // Call the user's CollectionReference to add a new user
-  return messageSender
-      .add({
-        'message': _controller.text, // John Doe
-        'time': FieldValue.serverTimestamp(),
-        'user': user!.email // Stokes and Sons
-      })
-      .then((value) => print("User Added"))
-      .catchError((error) => print("Failed to add user: $error"));
 }
 
 var firestor = FirebaseFirestore.instance;

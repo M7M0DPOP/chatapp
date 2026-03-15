@@ -1,22 +1,29 @@
 import 'package:awesome_dialog/awesome_dialog.dart';
-import 'package:chatapp/screens/show_screen.dart';
+import 'package:chatapp/screens/chat_screen.dart';
 import 'package:chatapp/screens/custom_widget.dart';
-import 'package:chatapp/screens/signup_testscreen.dart';
+import 'package:chatapp/screens/signup_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class LoginTestscreen extends StatefulWidget {
-  const LoginTestscreen({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
   @override
-  State<LoginTestscreen> createState() => _LoginTestscreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginTestscreenState extends State<LoginTestscreen> {
+class _LoginScreenState extends State<LoginScreen> {
   TextEditingController emailc = TextEditingController();
   TextEditingController passwordc = TextEditingController();
   bool isscure = true;
   String state = '';
+  @override
+  void dispose() {
+    emailc.dispose();
+    passwordc.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -134,7 +141,7 @@ class _LoginTestscreenState extends State<LoginTestscreen> {
                           Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => SignupTestscreen()));
+                                  builder: (context) => SignupScreen()));
                         },
                         child: Text(
                           'Sign Up',
